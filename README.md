@@ -108,6 +108,18 @@
 
 梯度提升树（XGBoost / LightGBM）并列最优，线性模型最弱——说明等级与特征之间存在明显的非线性。
 
+| 分诊等级分布 | 特征重要性 Top 20 |
+|---|---|
+| ![图 1](figures/01_target_distribution.png) | ![图 8](figures/08_feature_importance.png) |
+
+| 五个模型对比 | 混淆矩阵 |
+|---|---|
+| ![图 7](figures/07_model_comparison.png) | ![图 9](figures/09_confusion_matrix.png) |
+
+从混淆矩阵可以看出一件关键的事：**误判几乎全部发生在相邻等级之间**，跨两级以上的错误接近于零。这解释了 QWK 为什么这么高——不是模型"什么都对"，而是**错得都很轻**。特征重要性的前三名是 GCS、NEWS2、疼痛评分，与 3.2 节的体检结论完全吻合。
+
+全部图表见 `figures/`，运行 `python src/figures.py --model` 可一键重新生成。
+
 ## 5. 结论
 
 1. **本数据的分诊等级几乎完全由客观生理指标决定**：GCS 卡住了 1 / 2 级的分界，NEWS2 卡住了 3 / 4 / 5 级的分界，精神状态与疼痛评分同向变化。
@@ -128,7 +140,8 @@ triagegeist/
 ├── src/
 │   ├── preprocessing.py    # 特征工程（从 SQL 宽表读数据）
 │   ├── models.py           # 5 个模型
-│   └── main.py             # 一键跑全部模型
+│   ├── main.py             # 一键跑全部模型
+│   └── figures.py          # 生成 figures/ 里的全部图表
 ├── figures/                # 图表
 ├── submissions/            # 5 个模型的预测结果
 ├── docs/                   # 竞赛说明
@@ -146,7 +159,10 @@ python build_db.py
 # 2. 描述性分析（可选，结果直接打印）
 python lab.py
 
-# 3. 建模：五折交叉验证 + 生成提交文件
+# 3. 生成图表（加 --model 会额外训练一个随机森林，出图 8、图 9）
+python src/figures.py --model
+
+# 4. 建模：五折交叉验证 + 生成提交文件
 cd src
 python main.py
 ```
@@ -158,8 +174,8 @@ python main.py
 
 - 合成数据，结论不能外推到真实临床场景；
 - 主诉文本 `chief_complaint_raw`（10 万条）目前完全未使用，是最直接的改进空间；
-- `site_id`、`triage_nurse_id` 属于编号而非数量，当前被当作数值特征处理，应改为分类变量或直接剔除；
-- 待补：`figures/` 中图表的生成脚本。
+- `site_id`（5 个取值）和 `triage_nurse_id`（50 个取值）是纯编号，现在被序数编码成 0–4 / 0–49，等于人为制造了"大小关系"；更合理的是独热编码或直接剔除。信号体检显示这两个字段与分诊等级基本无关，剔除代价很小；
+- 生命体征存在缺失：收缩压等 5 个字段缺失 5.2%、呼吸频率 3.8%、体温 0.7%，目前一律用中位数填充，未分析缺失机制。
 
 ## 9. 作者
 

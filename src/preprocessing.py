@@ -206,13 +206,24 @@ def encode_and_scale(train, test, encode_cols, hx_cols, fill_num_cols):
 
 def get_processed_data():
     """
-    主函数：一键获取处理好的数据
+    主函数：一键获取处理好的数据（模型用的纯数值矩阵）
 
     返回:
         X_train: pd.DataFrame, 训练特征矩阵 (全部数值型)
         y_train: pd.Series, 目标变量 (triage_acuity 1-5)
         X_test:  pd.DataFrame, 测试特征矩阵
         test_ids: pd.Series, 测试集 patient_id
+    """
+    X_train, X_test, target, test_ids = get_processed_dataframes()
+    return X_train.values, target.values, X_test.values, test_ids.values
+
+
+def get_processed_dataframes():
+    """
+    与 get_processed_data() 相同，但返回带列名的 DataFrame ——
+    画图、看特征重要性时需要列名，用这个版本。
+
+    返回: X_train, X_test, target, test_ids
     """
     print("=" * 60)
     print("Triagegeist 数据预处理流水线")
@@ -231,7 +242,7 @@ def get_processed_data():
     print(f"\n[完成] X_train={X_train.shape}, y_train={target.shape}, X_test={X_test.shape}")
     print(f"[目标分布]\n{target.value_counts().sort_index().to_string()}")
 
-    return X_train.values, target.values, X_test.values, test_ids.values
+    return X_train, X_test, target, test_ids
 
 
 if __name__ == "__main__":
