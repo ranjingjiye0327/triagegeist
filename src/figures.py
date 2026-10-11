@@ -232,6 +232,41 @@ def fig08_09_model():
     save(fig, "09_confusion_matrix.png")
 
 
+# ── 图 10：主诉文本的严重程度词 × 分诊等级 ──────────────────
+def fig10_complaint_severity(df):
+    """主诉文本开头就是严重程度词，看它把等级圈到了什么范围。"""
+    words = ["mild", "minor", "moderate", "severe", "acute", "chronic"]
+    first = df["chief_complaint_raw"].fillna("").str.split().str[0].str.lower()
+    levels = sorted(df[TARGET].unique())
+
+    rows = []
+    for w in words:
+        sub = df.loc[first == w, TARGET]
+        if len(sub) < 50:
+            continue
+        rows.append(pd.Series({lv: (sub == lv).mean() * 100 for lv in levels},
+                              name=f"{w}\nn={len(sub):,}"))
+    share = pd.DataFrame(rows)
+
+    colors = ["#C44E52", "#DD8452", "#CCB974", "#64B5CD", "#4C72B0"]
+    fig, ax = plt.subplots(figsize=(9.5, 5))
+    bottom = np.zeros(len(share))
+    for i, lv in enumerate(share.columns):
+        ax.bar(share.index, share[lv].values, bottom=bottom,
+               label=f"{lv} 级", color=colors[i % len(colors)])
+        for x, (v, b) in enumerate(zip(share[lv].values, bottom)):
+            if v > 8:
+                ax.text(x, b + v / 2, f"{v:.0f}%", ha="center", va="center",
+                        fontsize=8, color="white")
+        bottom += share[lv].values
+    ax.set_ylabel("占比 (%)")
+    ax.set_xlabel("主诉文本开头的严重程度词")
+    ax.set_title("图 10  主诉文本的严重程度词 × 分诊等级构成")
+    ax.legend(ncol=5, fontsize=9, loc="upper center", bbox_to_anchor=(0.5, -0.14))
+    sns.despine()
+    save(fig, "10_complaint_severity.png")
+
+
 def main():
     ap = argparse.ArgumentParser(description="生成报告图表")
     ap.add_argument("--model", action="store_true",
@@ -249,6 +284,7 @@ def main():
     fig05_categorical(df)
     fig06_history(df)
     fig07_model_comparison()
+    fig10_complaint_severity(df)
 
     if args.model:
         fig08_09_model()
