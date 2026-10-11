@@ -1,0 +1,14 @@
+# 运行产物
+__pycache__/
+*.pyc
+output/
+
+# 数据与数据库
+# 原始数据来自竞赛，不对外分发；数据库可由 build_db.py 一条命令重建
+data/*.csv
+triagegeist.db
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store

@@ -1,0 +1,6 @@
+﻿模型,Accuracy,QWK
+Ordinal Logistic Regression,0.7889,0.8989
+Random Forest,0.8284,0.9185
+XGBoost,0.8533,0.9295
+LightGBM,0.8504,0.9292
+Neural Network (MLP),0.8134,0.9100
